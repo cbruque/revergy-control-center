@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revergy Carlos Bruque · IT Control Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#061426; --panel:#0a1d35; --panel2:#0d2542; --line:#173a61;
+  --text:#f4f8ff; --muted:#91a9c5; --blue:#1597ff; --blue2:#4d8dff;
+  --green:#19df91; --red:#ff3d57; --orange:#ffb020; --cyan:#20d7ff;
+  --shadow:0 12px 35px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 70% -10%,#10345b 0,#061426 38%,#030b16 100%);
+font-family:'Inter',Segoe UI,Arial,sans-serif;color:var(--text);min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:74px 1fr;min-height:100vh}
+.sidebar{background:#04101f;border-right:1px solid #12304e;display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:12px}
+.logo{font-weight:900;font-size:25px;color:#67aaff;margin-bottom:16px}
+.sidebtn{width:46px;height:46px;border:1px solid transparent;border-radius:12px;background:transparent;color:#89a6c4;font-size:20px}
+.sidebtn:hover,.sidebtn.active{background:#0b2949;color:#fff;border-color:#17528a}
+.main{padding:0 20px 24px;min-width:0}
+.topbar{height:84px;display:flex;align-items:center;gap:22px;border-bottom:1px solid #133351;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;min-width:360px}
+.brandmark{font-size:38px;font-weight:900;color:#76b6ff}
+.brand h1{margin:0;font-size:27px;letter-spacing:-.6px;font-weight:900}
+.brand h1 span{color:#66a8ff}
+.brand small{display:block;color:#9ab7d6;letter-spacing:3px;margin-top:4px;font-size:10px}
+.topstatus{margin-left:auto;display:flex;align-items:center;gap:18px;color:#aac1da}
+.live{display:flex;align-items:center;gap:8px;font-size:13px}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+.dot.warn{background:var(--orange);box-shadow:0 0 12px var(--orange);}
+.dot.crit{background:var(--red);box-shadow:0 0 12px var(--red);}
+.clock{font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;}
+.actions button{background:transparent;border:0;color:#9db6d2;font-size:20px;margin-left:10px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:14px;margin-top:18px}
+.card{background:linear-gradient(180deg,rgba(12,37,66,.97),rgba(7,26,46,.97));border:1px solid #17466f;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.cardhead{display:flex;align-items:center;padding:14px 15px 8px;gap:11px}
+.icon{width:42px;height:42px;border-radius:10px;background:#0b3157;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.card h2{font-size:17px;margin:0;font-weight:700}
+.card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+.badge{margin-left:auto;min-width:28px;height:28px;padding:0 8px;border-radius:20px;display:grid;place-items:center;background:#173a61;color:#cfe0f5;font-weight:900;font-size:13px}
+.badge.warn{background:var(--orange);color:#241600}
+.badge.crit{background:var(--red);color:#2a0006}
+.metrics{display:flex;gap:10px;padding:0 15px 11px;color:#a8bdd5;font-size:11.5px;flex-wrap:wrap}
+.metrics b{color:#fff}
+.preview{margin:0 12px 12px;border:1px solid #1a4368;border-radius:8px;background:#07182a;min-height:70px;padding:10px;flex:1}
+.item{display:flex;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px solid #102f4c;font-size:11.5px}
+.item:last-child{border-bottom:0}
+.item .time{margin-left:auto;color:#6f8ca9;font-size:10px;white-space:nowrap}
+.item .mini{width:9px;height:9px;border-radius:3px;background:var(--blue);flex-shrink:0}
+.item.critical .mini{background:var(--red)}.item.warning .mini{background:var(--orange)}.item.ok .mini{background:var(--green)}
+.empty-preview{color:#5b7796;font-size:11.5px;text-align:center;padding:18px 6px;}
+.cardfooter{display:flex;gap:8px;padding:0 12px 12px}
+.primary{background:linear-gradient(90deg,#0788ff,#176fff);border:0;color:#fff;border-radius:8px;padding:9px 12px;font-weight:700;font-size:12.5px;flex:1;}
+.secondary{background:#0a2948;border:1px solid #1a4a74;color:#c9dcf0;border-radius:8px;padding:9px 12px;font-size:12.5px;}
+.more{display:grid;place-items:center;min-height:220px;flex:1;}
+.more .plus{font-size:44px;color:#5b8bb9}
+.more p{color:#9bb2cb;text-align:center;font-size:12.5px}
+.alerts{margin-top:16px;background:linear-gradient(180deg,#071a2d,#06172a);border:1px solid #17466f;border-radius:12px;overflow:hidden}
+.alerthead{display:flex;align-items:center;padding:14px 17px;border-bottom:1px solid #163a5c;flex-wrap:wrap;gap:8px}
+.alerthead h2{margin:0;font-size:16px;font-weight:700;}
+.count{background:#173a61;color:#cfe0f5;padding:3px 9px;border-radius:20px;font-size:11px;margin-left:8px;font-weight:700;}
+.filters{margin-left:auto;display:flex;gap:7px}
+.filter{border:1px solid #1c466d;background:#0a2542;color:#aac1d9;border-radius:7px;padding:6px 10px;font-size:11px}
+.filter.active{background:#1163aa;color:#fff}
+.alerttable{width:100%;border-collapse:collapse;font-size:12px}
+.alerttable th,.alerttable td{text-align:left;padding:10px 13px;border-bottom:1px solid #102f4c}
+.alerttable th{color:#7894b1;font-weight:500}
+.critical{color:#ff5368}.warning{color:#ffc04a}.info{color:#48b8ff}
+.stbtn{background:none;border:1px solid #1c466d;color:#aac1d9;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;}
+.stbtn.done{color:#19df91;border-color:#19df91;}
+.noalerts{padding:24px;text-align:center;color:#5b7796;font-size:12.5px;}
+.footer{display:flex;justify-content:space-between;color:#718da9;font-size:11px;padding:14px 4px;flex-wrap:wrap;gap:6px;}
+.connected{color:var(--green);font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.open{display:flex}
+.modalbox{width:min(760px,100%);max-height:88vh;overflow:auto;background:#071a2d;border:1px solid #1d4e7a;border-radius:14px;box-shadow:0 30px 80px #000;padding:22px}
+.modalbox h2{margin-top:0;font-size:18px;}
+.formrow{display:grid;grid-template-columns:60px 1.2fr 2fr auto;gap:8px;margin:8px 0;align-items:center;}
+.formrow input{background:#061426;border:1px solid #204d76;color:#fff;border-radius:7px;padding:9px;width:100%;}
+.formrow button{background:#0a2948;border:1px solid #1a4a74;color:#c9dcf0;border-radius:7px;padding:9px 10px;font-size:12px;}
+.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.notice{color:#89a8c7;font-size:12px;line-height:1.5}
+.addapp{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px dashed #1d4e7a;}
+.addapp input{background:#061426;border:1px dashed #204d76;color:#fff;border-radius:7px;padding:9px;}
+.addapp input:first-child{width:60px;}
+.noteform{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.noteform input{flex:1;min-width:120px;background:#061426;border:1px solid #204d76;color:#fff;border-radius:7px;padding:8px;font-size:12px;}
+.noteform select{background:#061426;border:1px solid #204d76;color:#fff;border-radius:7px;padding:8px;font-size:12px;}
+@media(max-width:1250px){.grid{grid-template-columns:repeat(2,minmax(260px,1fr))}.brand{min-width:280px}}
+@media(max-width:850px){.app{grid-template-columns:1fr}.sidebar{display:none}.grid{grid-template-columns:1fr}.topbar{height:auto;padding:14px 0}.topstatus{margin-left:0}.brand{min-width:0}}
+
+.notemodalbox{width:min(420px,100%);}
+.typepicker{display:flex;gap:8px;margin:12px 0;}
+.typepicker button{flex:1;border:1px solid #204d76;background:#061426;color:#c9dcf0;border-radius:8px;padding:10px 6px;font-size:12px;text-align:center;}
+.typepicker button.sel-info{background:#0a3a5c;border-color:var(--blue);color:#8fd0ff;}
+.typepicker button.sel-warning{background:#4a3405;border-color:var(--orange);color:#ffd280;}
+.typepicker button.sel-critical{background:#4a0510;border-color:var(--red);color:#ff8b98;}
+.notemodalbox textarea{width:100%;background:#061426;border:1px solid #204d76;color:#fff;border-radius:7px;padding:10px;resize:vertical;min-height:70px;margin-top:6px;}
+.notemodalbox label{font-size:11.5px;color:#89a8c7;display:block;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">R</div>
+    <button class="sidebtn active" title="Panel">⌂</button>
+    <button class="sidebtn" onclick="openManager()" title="Gestionar accesos">▦</button>
+    <button class="sidebtn" onclick="openManager()" title="Ajustes">⚙</button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandmark">R</div>
+        <div><h1>Revergy <span>Carlos Bruque</span></h1><small>IT CONTROL CENTER</small></div>
+      </div>
+      <div class="topstatus">
+        <div class="live"><span class="dot" id="statusDot"></span> <span id="statusText">Todos los sistemas operativos</span></div>
+        <div class="clock" id="clock">--:--</div>
+        <div class="actions"><button title="Configurar" onclick="openManager()">⚙</button></div>
+      </div>
+    </header>
+
+    <section class="grid" id="cards"></section>
+
+    <section class="alerts">
+      <div class="alerthead">
+        <h2>🔔 Avisos</h2><span class="count" id="alertCount">0</span>
+        <div class="filters">
+          <button class="filter active" data-f="all" onclick="filterAlerts('all',this)">Todos</button>
+          <button class="filter" data-f="critical" onclick="filterAlerts('critical',this)">Críticos</button>
+          <button class="filter" data-f="warning" onclick="filterAlerts('warning',this)">Advertencias</button>
+          <button class="filter" data-f="info" onclick="filterAlerts('info',this)">Info</button>
+        </div>
+      </div>
+      <table class="alerttable">
+        <thead><tr><th>Hora</th><th>Origen</th><th>Tipo</th><th>Descripción</th><th>Estado</th></tr></thead>
+        <tbody id="alertRows"></tbody>
+      </table>
+    </section>
+
+    <div class="footer">
+      <span><span class="connected">● Guardado localmente</span> &nbsp;|&nbsp; Última actualización: <span id="updated">--:--</span></span>
+      <span>Revergy IT Control Center · Datos introducidos manualmente hasta conectar APIs reales</span>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <h2>⚙ Gestionar accesos</h2>
+    <p class="notice">Cambia nombre, icono (un emoji) o URL de cada acceso, o elimínalo. Los contadores de cada tarjeta reflejan los avisos que tú añadas desde "+ Aviso" en cada tarjeta — no hay monitorización automática todavía.</p>
+    <div id="form"></div>
+    <div class="addapp">
+      <input id="new-icon" placeholder="🔧" maxlength="4">
+      <input id="new-name" placeholder="Nombre del nuevo acceso">
+      <input id="new-url" placeholder="URL (https://...)" style="flex:1;">
+      <button class="secondary" onclick="addApp()">+ Añadir</button>
+    </div>
+    <div class="modalactions">
+      <button class="secondary" onclick="closeManager()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="noteModal">
+  <div class="modalbox notemodalbox">
+    <h2 id="noteModalTitle">⚠ Nuevo aviso</h2>
+    <label>Descripción</label>
+    <textarea id="noteText" placeholder="ej. 3 tickets pendientes de revisar"></textarea>
+    <label>Criticidad</label>
+    <div class="typepicker" id="typePicker">
+      <button type="button" data-type="info" onclick="pickType('info')">🔵 Info</button>
+      <button type="button" data-type="warning" onclick="pickType('warning')">🟠 Advertencia</button>
+      <button type="button" data-type="critical" onclick="pickType('critical')">🔴 Crítica</button>
+    </div>
+    <div class="modalactions">
+      <button class="secondary" onclick="closeNoteModal()">Cancelar</button>
+      <button class="primary" onclick="saveNote()">Guardar aviso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'revergy-control-center-v1';
+const defaultApps=[
+ {id:'outlook',name:"Outlook",icon:"📨",url:"https://outlook.office.com/mail/",notes:[],opens:[]},
+ {id:'teams',name:"Teams",icon:"👥",url:"https://teams.microsoft.com/",notes:[],opens:[]},
+ {id:'entra',name:"Entra ID",icon:"🔷",url:"https://entra.microsoft.com/",notes:[],opens:[]},
+ {id:'exchange',name:"Exchange",icon:"✉️",url:"https://admin.exchange.microsoft.com/",notes:[],opens:[]},
+ {id:'intune',name:"Intune",icon:"💻",url:"https://intune.microsoft.com/",notes:[],opens:[]},
+ {id:'sp',name:"SharePoint",icon:"🔗",url:"https://revergym365.sharepoint.com/",notes:[],opens:[]},
+ {id:'glpi',name:"GLPI",icon:"🎫",url:"",notes:[],opens:[]}
+];
+
+let apps=null;
+
+async function loadApps(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){ apps = JSON.parse(res.value); return; }
+  }catch(e){}
+  apps = JSON.parse(JSON.stringify(defaultApps));
+  await saveApps();
+}
+async function saveApps(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(apps), false); }
+  catch(e){ console.error('No se pudo guardar', e); }
+}
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function timeShort(ts){ return new Date(ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}); }
+
+function allNotes(){
+  const list=[];
+  apps.forEach(a=>(a.notes||[]).forEach(n=>list.push({...n, app:a.name})));
+  return list.sort((a,b)=>b.ts-a.ts);
+}
+
+function render(){
+  const root=document.getElementById("cards");
+  root.innerHTML=apps.map((a,i)=>{
+    const notes=(a.notes||[]);
+    const openCount = notes.filter(n=>n.status==='Abierta').length;
+    const hasCritical = notes.some(n=>n.status==='Abierta' && n.type==='critical');
+    const hasWarn = notes.some(n=>n.status==='Abierta' && n.type==='warning');
+    const badgeClass = hasCritical ? 'crit' : hasWarn ? 'warn' : '';
+    const previewItems = notes.slice(-3).reverse().map(n=>
+      `<div class="item ${n.type}"><span class="mini"></span><span><b>${esc(n.text)}</b></span><span class="time">${timeShort(n.ts)}</span></div>`
+    ).join("");
+    const preview = notes.length ? previewItems : `<div class="empty-preview">Sin avisos registrados</div>`;
+    const opens = (a.opens||[]).length;
+    return `<article class="card">
+      <div class="cardhead">
+        <div class="icon">${esc(a.icon)}</div>
+        <div><h2>${esc(a.name)}</h2><div class="sub">${a.url?"Acceso configurado":"Sin URL — edítalo"}</div></div>
+        <span class="badge ${badgeClass}">${openCount}</span>
+      </div>
+      <div class="metrics"><span><b>${opens}</b> aperturas</span><span><b>${notes.length}</b> avisos totales</span></div>
+      <div class="preview">${preview}</div>
+      <div class="cardfooter">
+        <button class="primary" onclick="openApp('${a.id}')">Abrir</button>
+        <button class="secondary" onclick="addNotePrompt('${a.id}')">+ Aviso</button>
+        <button class="secondary" onclick="openManager()">Editar</button>
+      </div>
+    </article>`;
+  }).join("") + `<article class="card"><div class="more"><div class="plus">＋</div><p>Personaliza tus accesos<br>Añade o elimina aplicaciones</p></div><div class="cardfooter"><button class="primary" onclick="openManager()">Gestionar</button></div></article>`;
+
+  renderAlerts(currentFilter);
+  updateStatus();
+}
+
+function updateStatus(){
+  const notes = allNotes().filter(n=>n.status==='Abierta');
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  const crit = notes.filter(n=>n.type==='critical').length;
+  const warn = notes.filter(n=>n.type==='warning').length;
+  if(crit>0){ dot.className='dot crit'; text.textContent = crit + ' incidencia' + (crit>1?'s':'') + ' crítica' + (crit>1?'s':'') + ' abierta' + (crit>1?'s':''); }
+  else if(warn>0){ dot.className='dot warn'; text.textContent = warn + ' advertencia' + (warn>1?'s':'') + ' abierta' + (warn>1?'s':''); }
+  else { dot.className='dot'; text.textContent='Todos los sistemas operativos'; }
+}
+
+function openApp(id){
+  const a=apps.find(x=>x.id===id);
+  if(a && a.url){ a.opens=a.opens||[]; a.opens.push(Date.now()); saveApps(); window.open(a.url,"_blank"); render(); }
+  else openManager();
+}
+
+let currentFilter='all';
+function renderAlerts(filter){
+  currentFilter=filter;
+  const rows=document.getElementById("alertRows");
+  const data=allNotes().filter(n=>filter==='all' || n.type===filter);
+  document.getElementById("alertCount").textContent = allNotes().length;
+  if(data.length===0){
+    rows.innerHTML = `<tr><td colspan="5" class="noalerts">Sin avisos ${filter==='all'?'todavía':'de este tipo'}. Añade uno desde "+ Aviso" en cualquier tarjeta.</td></tr>`;
+    return;
+  }
+  rows.innerHTML=data.map(n=>`<tr>
+    <td>${timeShort(n.ts)}</td>
+    <td>${esc(n.app)}</td>
+    <td class="${n.type}">${n.type==='critical'?'🔴 Crítica':n.type==='warning'?'🟠 Advertencia':'🔵 Info'}</td>
+    <td>${esc(n.text)}</td>
+    <td><button class="stbtn ${n.status==='Vista'?'done':''}" onclick="toggleNote('${n.id}')">${esc(n.status)}</button></td>
+  </tr>`).join("");
+}
+function filterAlerts(f,b){document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderAlerts(f)}
+
+async function toggleNote(id){
+  for(const a of apps){
+    const n=(a.notes||[]).find(x=>x.id===id);
+    if(n){ n.status = n.status==='Abierta' ? 'Vista' : 'Abierta'; break; }
+  }
+  await saveApps(); render();
+}
+
+let noteTargetAppId = null;
+let notePickedType = 'info';
+
+function addNotePrompt(appId){
+  noteTargetAppId = appId;
+  notePickedType = 'info';
+  document.getElementById('noteText').value = '';
+  const app = apps.find(x=>x.id===appId);
+  document.getElementById('noteModalTitle').textContent = '⚠ Nuevo aviso · ' + (app ? app.name : '');
+  pickType('info');
+  document.getElementById('noteModal').classList.add('open');
+}
+function pickType(type){
+  notePickedType = type;
+  document.querySelectorAll('#typePicker button').forEach(b=>{
+    b.classList.remove('sel-info','sel-warning','sel-critical');
+    if(b.dataset.type===type) b.classList.add('sel-'+type);
+  });
+}
+function closeNoteModal(){
+  document.getElementById('noteModal').classList.remove('open');
+  noteTargetAppId = null;
+}
+async function saveNote(){
+  const text = document.getElementById('noteText').value.trim();
+  if(!text || !noteTargetAppId) return;
+  const a = apps.find(x=>x.id===noteTargetAppId);
+  a.notes = a.notes || [];
+  a.notes.push({ id: uid('n'), text, type: notePickedType, status:'Abierta', ts: Date.now() });
+  await saveApps();
+  closeNoteModal();
+  render();
+}
+
+function openManager(){
+  const modal=document.getElementById("modal"), form=document.getElementById("form");
+  form.innerHTML=apps.map((a,i)=>`<div class="formrow">
+    <input id="ic${i}" value="${esc(a.icon)}" maxlength="4">
+    <input id="n${i}" value="${esc(a.name)}" placeholder="Nombre">
+    <input id="u${i}" value="${esc(a.url)}" placeholder="URL (https://...)">
+    <button onclick="removeApp('${a.id}')">Eliminar</button>
+  </div>`).join("");
+  modal.classList.add("open");
+}
+function closeManager(){
+  apps.forEach((a,i)=>{
+    const icEl=document.getElementById('ic'+i), nEl=document.getElementById('n'+i), uEl=document.getElementById('u'+i);
+    if(icEl){ a.icon = icEl.value.trim() || a.icon; a.name = nEl.value.trim() || a.name; a.url = uEl.value.trim(); }
+  });
+  saveApps().then(render);
+  document.getElementById("modal").classList.remove("open");
+}
+async function removeApp(id){
+  if(!confirm('¿Eliminar este acceso y sus avisos?')) return;
+  apps = apps.filter(a=>a.id!==id);
+  await saveApps();
+  openManager();
+  render();
+}
+async function addApp(){
+  const icon = document.getElementById('new-icon').value.trim() || '🔧';
+  const name = document.getElementById('new-name').value.trim();
+  let url = document.getElementById('new-url').value.trim();
+  if(!name) return;
+  if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+  apps.push({ id: uid('a'), name, icon, url, notes:[], opens:[] });
+  document.getElementById('new-icon').value='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-url').value='';
+  await saveApps();
+  openManager();
+  render();
+}
+
+function tick(){
+  const d=new Date(), t=d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.getElementById("clock").textContent=t;
+  document.getElementById("updated").textContent=t;
+}
+
+(async function init(){
+  await loadApps();
+  render();
+  setInterval(tick,1000);
+  tick();
+})();
+</script>
+</body>
+</html>
