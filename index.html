@@ -188,8 +188,21 @@ button{cursor:pointer}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 <script>
 const STORAGE_KEY = 'revergy-control-center-v1';
+
+const msalConfig = {
+  auth: {
+    clientId: '926c0a1f-b725-45f3-9904-110f4455eb9a',
+    authority: 'https://login.microsoftonline.com/4fe87a29-74e1-41c5-bda3-6f4298f1fc78',
+    redirectUri: window.location.origin + window.location.pathname
+  },
+  cache: { cacheLocation: 'localStorage' }
+};
+let msalInstance = null;
+try{ msalInstance = new msal.PublicClientApplication(msalConfig); }catch(e){ console.error('MSAL no disponible', e); }
+
 const defaultApps=[
  {id:'outlook',name:"Outlook",icon:"📨",url:"https://outlook.office.com/mail/",notes:[],opens:[]},
  {id:'teams',name:"Teams",icon:"👥",url:"https://teams.microsoft.com/",notes:[],opens:[]},
@@ -201,6 +214,50 @@ const defaultApps=[
 ];
 
 let apps=null;
+
+async function connectOutlook(){
+  if(!msalInstance){ alert('No se pudo cargar la librería de Microsoft (MSAL). Revisa la conexión.'); return; }
+  try{
+    await msalInstance.initialize();
+    let account = msalInstance.getAllAccounts()[0];
+    let result;
+    if(account){
+      try{
+        result = await msalInstance.acquireTokenSilent({ scopes:['Mail.Read'], account });
+      }catch(silentErr){
+        result = await msalInstance.acquireTokenPopup({ scopes:['Mail.Read'] });
+      }
+    }else{
+      result = await msalInstance.loginPopup({ scopes:['Mail.Read'] });
+      account = result.account;
+    }
+    const token = result.accessToken;
+
+    const inboxRes = await fetch('https://graph.microsoft.com/v1.0/me/mailFolders/inbox?$select=unreadItemCount', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const inboxData = await inboxRes.json();
+
+    const msgRes = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=3&$select=subject,receivedDateTime,isRead&$orderby=receivedDateTime desc', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const msgData = await msgRes.json();
+
+    const outlookApp = apps.find(a=>a.id==='outlook');
+    if(outlookApp){
+      outlookApp.liveData = {
+        unread: inboxData.unreadItemCount ?? 0,
+        messages: (msgData.value||[]).map(m=>({subject:m.subject, ts:new Date(m.receivedDateTime).getTime(), unread:!m.isRead})),
+        lastSync: Date.now()
+      };
+      await saveApps();
+      render();
+    }
+  }catch(err){
+    console.error(err);
+    alert('No se pudo conectar con Outlook: ' + (err.errorMessage || err.message || err));
+  }
+}
 
 async function loadApps(){
   try{
@@ -232,22 +289,30 @@ function render(){
     const openCount = notes.filter(n=>n.status==='Abierta').length;
     const hasCritical = notes.some(n=>n.status==='Abierta' && n.type==='critical');
     const hasWarn = notes.some(n=>n.status==='Abierta' && n.type==='warning');
-    const badgeClass = hasCritical ? 'crit' : hasWarn ? 'warn' : '';
+    const live = a.liveData;
+    const badgeCount = live ? live.unread : openCount;
+    const badgeClass = live ? (live.unread>0 ? 'warn' : '') : (hasCritical ? 'crit' : hasWarn ? 'warn' : '');
     const previewItems = notes.slice(-3).reverse().map(n=>
       `<div class="item ${n.type}"><span class="mini"></span><span><b>${esc(n.text)}</b></span><span class="time">${timeShort(n.ts)}</span></div>`
     ).join("");
-    const preview = notes.length ? previewItems : `<div class="empty-preview">Sin avisos registrados</div>`;
+    const livePreview = live ? live.messages.slice(0,3).map(m=>
+      `<div class="item ${m.unread?'warning':'ok'}"><span class="mini"></span><span><b>${esc(m.subject||'(sin asunto)')}</b></span><span class="time">${timeShort(m.ts)}</span></div>`
+    ).join("") : "";
+    const preview = live ? (livePreview || `<div class="empty-preview">Sin correos recientes</div>`) : (notes.length ? previewItems : `<div class="empty-preview">Sin avisos registrados</div>`);
     const opens = (a.opens||[]).length;
+    const syncBtn = a.id==='outlook' ? `<button class="secondary" onclick="connectOutlook()" title="Conectar/actualizar con tu cuenta Microsoft">🔄 ${live ? 'Sincronizar' : 'Conectar'}</button>` : '';
+    const liveTag = live ? `<div class="metrics"><span style="color:#19df91;">🔄 En vivo</span><span>última sync ${timeShort(live.lastSync)}</span><span><b>${opens}</b> aperturas</span></div>` : `<div class="metrics"><span><b>${opens}</b> aperturas</span><span><b>${notes.length}</b> avisos totales</span></div>`;
     return `<article class="card">
       <div class="cardhead">
         <div class="icon">${esc(a.icon)}</div>
         <div><h2>${esc(a.name)}</h2><div class="sub">${a.url?"Acceso configurado":"Sin URL — edítalo"}</div></div>
-        <span class="badge ${badgeClass}">${openCount}</span>
+        <span class="badge ${badgeClass}">${badgeCount}</span>
       </div>
-      <div class="metrics"><span><b>${opens}</b> aperturas</span><span><b>${notes.length}</b> avisos totales</span></div>
+      ${liveTag}
       <div class="preview">${preview}</div>
       <div class="cardfooter">
         <button class="primary" onclick="openApp('${a.id}')">Abrir</button>
+        ${syncBtn}
         <button class="secondary" onclick="addNotePrompt('${a.id}')">+ Aviso</button>
         <button class="secondary" onclick="openManager()">Editar</button>
       </div>
